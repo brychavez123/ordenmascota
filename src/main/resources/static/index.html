@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microservicio de ordenes en ejecucion</title>
+</head>
+<body>
+  <h1>Microservicio de ordenes en ejecucion</h1>
+  <p>Servidor iniciado correctamente.</p>
+
+  <h2>Ordenes de mascotas</h2>
+  <ul>
+    <li><a href="/api/ordenes">GET /api/ordenes</a></li>
+    <li><a href="/api/ordenes/1">GET /api/ordenes/1</a></li>
+    <li><a href="/api/ordenes/estado/1">GET /api/ordenes/estado/1</a></li>
+    <li><a href="/api/ordenes/crear?cliente=Bryan&amp;email=bryan@mail.com&amp;telefono=%2B56911111111&amp;direccion=Av.%20Los%20Aromos%20123&amp;mascota=Luna&amp;producto=Comida%20Premium&amp;categoriaProducto=Alimentos&amp;sku=ALIM-099&amp;cantidad=2&amp;precioUnitario=12000">GET /api/ordenes/crear?cliente=Bryan&amp;email=bryan@mail.com&amp;telefono=+56911111111&amp;direccion=Av. Los Aromos 123&amp;mascota=Luna&amp;producto=Comida Premium&amp;categoriaProducto=Alimentos&amp;sku=ALIM-099&amp;cantidad=2&amp;precioUnitario=12000</a></li>
+    <li><a href="/api/ordenes/cancelar/1">GET /api/ordenes/cancelar/1</a></li>
+  </ul>
+</body>
+</html>
