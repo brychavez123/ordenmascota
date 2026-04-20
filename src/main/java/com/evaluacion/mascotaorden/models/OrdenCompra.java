@@ -1,15 +1,53 @@
 package com.evaluacion.mascotaorden.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
 import java.math.BigDecimal;
 
+@Entity
+@Table(name = "ordenmascota_orden_compra")
 public class OrdenCompra {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "COMPRADOR_ID", nullable = false)
     private Comprador comprador;
-    private String nombreMascota;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PRODUCTO_ID", nullable = false)
     private ProductoOrden producto;
+
+    @Column(name = "NOMBRE_MASCOTA", nullable = false, length = 80)
+    private String nombreMascota;
+
+    @Column(name = "CANTIDAD", nullable = false)
     private Integer cantidad;
+
+    @Column(name = "TOTAL", nullable = false, precision = 14, scale = 2)
     private BigDecimal total;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ESTADO", nullable = false, length = 20)
     private EstadoOrden estado;
 
     public OrdenCompra() {
@@ -22,8 +60,16 @@ public class OrdenCompra {
         this.nombreMascota = nombreMascota;
         this.producto = producto;
         this.cantidad = cantidad;
-        this.total = producto.getPrecioUnitario().multiply(BigDecimal.valueOf(cantidad));
         this.estado = estado;
+        recalcularTotal();
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void recalcularTotal() {
+        if (producto != null && producto.getPrecioUnitario() != null && cantidad != null) {
+            this.total = producto.getPrecioUnitario().multiply(BigDecimal.valueOf(cantidad));
+        }
     }
 
     public Long getId() {
@@ -82,7 +128,6 @@ public class OrdenCompra {
         this.estado = estado;
     }
 
-    // Getters de compatibilidad para mantener respuestas simples en el JSON.
     public String getCliente() {
         return comprador != null ? comprador.getNombre() : null;
     }
@@ -105,5 +150,15 @@ public class OrdenCompra {
 
     public BigDecimal getPrecioUnitario() {
         return producto != null ? producto.getPrecioUnitario() : null;
+    }
+
+    @Transient
+    public Integer getCompradorId() {
+        return comprador != null ? comprador.getId() : null;
+    }
+
+    @Transient
+    public Integer getProductoId() {
+        return producto != null ? producto.getId() : null;
     }
 }

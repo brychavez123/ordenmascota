@@ -1,20 +1,18 @@
 package com.evaluacion.mascotaorden.controller;
 
-import com.evaluacion.mascotaorden.models.OrdenCompra;
 import com.evaluacion.mascotaorden.service.OrdenCompraServicio;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/ordenes")
@@ -27,35 +25,20 @@ public class OrdenCompraController {
     }
 
     @GetMapping
-    public List<OrdenCompra> obtenerOrdenes() {
-        return ordenCompraServicio.obtenerOrdenes();
+    public ResponseEntity<?> listarOrdenes() {
+        return ResponseEntity.ok(ordenCompraServicio.listarOrdenes());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerOrdenPorId(@PathVariable Long id) {
-        Optional<OrdenCompra> orden = ordenCompraServicio.obtenerOrdenPorId(id);
-        if (orden.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "No existe una orden con id " + id));
+        Map<String, Object> resultado = ordenCompraServicio.buscarOrdenPorId(id);
+        if (Boolean.FALSE.equals(resultado.get("ok"))) {
+            return ResponseEntity.badRequest().body(resultado);
         }
-        return ResponseEntity.ok(orden.get());
+        return ResponseEntity.ok(resultado);
     }
 
-    @GetMapping("/estado/{id}")
-    public ResponseEntity<?> obtenerEstadoOrden(@PathVariable Long id) {
-        Optional<OrdenCompra> orden = ordenCompraServicio.obtenerOrdenPorId(id);
-        if (orden.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "No existe una orden con id " + id));
-        }
-
-        Map<String, Object> respuesta = new LinkedHashMap<>();
-        respuesta.put("id", orden.get().getId());
-        respuesta.put("estado", orden.get().getEstado());
-        return ResponseEntity.ok(respuesta);
-    }
-
-    @GetMapping("/crear")
+    @PostMapping
     public ResponseEntity<?> crearOrden(
             @RequestParam String cliente,
             @RequestParam String email,
@@ -66,35 +49,55 @@ public class OrdenCompraController {
             @RequestParam String categoriaProducto,
             @RequestParam String sku,
             @RequestParam Integer cantidad,
-            @RequestParam BigDecimal precioUnitario) {
-
-        List<String> errores = ordenCompraServicio.validarDatos(
-                cliente, email, telefono, direccion, mascota, producto, categoriaProducto, sku, cantidad, precioUnitario
+            @RequestParam BigDecimal precioUnitario
+    ) {
+        Map<String, Object> resultado = ordenCompraServicio.crearOrden(
+                cliente,
+                email,
+                telefono,
+                direccion,
+                mascota,
+                producto,
+                categoriaProducto,
+                sku,
+                cantidad,
+                precioUnitario
         );
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("errores", errores));
+
+        if (Boolean.FALSE.equals(resultado.get("ok"))) {
+            return ResponseEntity.badRequest().body(resultado);
         }
 
-        OrdenCompra nuevaOrden = ordenCompraServicio.crearOrden(
-                cliente, email, telefono, direccion, mascota, producto, categoriaProducto, sku, cantidad, precioUnitario
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaOrden);
+        return ResponseEntity.ok(resultado);
     }
 
-    @GetMapping("/cancelar/{id}")
-    public ResponseEntity<?> cancelarOrden(@PathVariable Long id) {
-        Optional<OrdenCompra> orden = ordenCompraServicio.obtenerOrdenPorId(id);
-        if (orden.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "No existe una orden con id " + id));
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarOrden(
+            @PathVariable Long id,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String mascota
+    ) {
+        Map<String, Object> resultado = ordenCompraServicio.actualizarOrden(
+                id,
+                email,
+                telefono,
+                mascota
+        );
+
+        if (Boolean.FALSE.equals(resultado.get("ok"))) {
+            return ResponseEntity.badRequest().body(resultado);
         }
 
-        boolean seCancelo = ordenCompraServicio.cancelarOrden(orden.get());
-        if (!seCancelo) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No se puede cancelar una orden que ya fue entregada"));
-        }
+        return ResponseEntity.ok(resultado);
+    }
 
-        return ResponseEntity.ok(orden.get());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarOrden(@PathVariable Long id) {
+        Map<String, Object> resultado = ordenCompraServicio.eliminarOrden(id);
+        if (Boolean.FALSE.equals(resultado.get("ok"))) {
+            return ResponseEntity.badRequest().body(resultado);
+        }
+        return ResponseEntity.ok(resultado);
     }
 }
